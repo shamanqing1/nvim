@@ -56,7 +56,7 @@ endif
 set ruler
 
 " Height of the command bar
-set cmdheight=2
+set cmdheight=1
 
 " A buffer becomes hidden when it is abandoned
 set hid
@@ -158,12 +158,23 @@ set ai "Auto indent
 set si "Smart indent
 set wrap "Wrap lines
 
+" Search
+" Search
+noremap <LEADER><CR> :nohlsearch<CR>
+
+" Faster line navigation
+noremap <silent> K 5k
+noremap <silent> J 5j
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Moving around, tabs, windows and buffers
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Map <Space> to / (search) and Ctrl-<Space> to ? (backwards search)
 " map <space> /
 " map <C-space> ?
+
+map g] :bnext<cr>
+map g[ :bprevious<cr>
 
 " Resize splits with arrow keys
 noremap <C-up> :res +5<CR>
@@ -317,6 +328,7 @@ Plug 'connorholyday/vim-snazzy'
 
 " Status Line
 Plug 'itchyny/lightline.vim'
+Plug 'edkolev/tmuxline.vim'
 
 " Taglist
 Plug 'liuchengxu/vista.vim'
@@ -329,6 +341,13 @@ Plug 'theniceboy/vim-snippets'
 
 " Commenter
 Plug 'preservim/nerdcommenter'
+
+" File Explorer
+Plug 'kevinhwang91/rnvimr', {'do': 'make sync'}
+Plug 'kien/ctrlp.vim'
+
+" Debugger
+Plug 'puremourning/vimspector', {'do': './install_gadget.py --enable-c --enable-python'}
 
 " Other Editor Enhancement
 Plug 'tpope/vim-surround'
@@ -345,6 +364,30 @@ let g:SnazzyTransparent = 1
 set laststatus=2
 let g:lightline = {'colorscheme': 'snazzy'}
 set noshowmode
+
+" ===
+" === rnvimr
+" ===
+let g:rnvimr_ex_enable = 1
+let g:rnvimr_pick_enable = 1
+let g:rnvimr_draw_border = 0
+" let g:rnvimr_bw_enable = 1
+highlight link RnvimrNormal CursorLine
+nnoremap <silent> R :RnvimrSync<CR>:RnvimrToggle<CR><C-\><C-n>:RnvimrResize 0<CR>
+let g:rnvimr_action = {
+            \ '<C-t>': 'NvimEdit tabedit',
+            \ '<C-x>': 'NvimEdit split',
+            \ '<C-v>': 'NvimEdit vsplit',
+            \ 'gw': 'JumpNvimCwd',
+            \ 'yw': 'EmitRangerCwd'
+            \ }
+let g:rnvimr_layout = { 'relative': 'editor',
+            \ 'width': &columns,
+            \ 'height': &lines,
+            \ 'col': 0,
+            \ 'row': 0,
+            \ 'style': 'minimal' }
+let g:rnvimr_presets = [{'width': 1.0, 'height': 1.0}]
 
 " Coc 
 let g:coc_global_extensions = [
@@ -413,8 +456,8 @@ nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
 
-" Use K to show documentation in preview window.
-nnoremap <silent> K :call <SID>show_documentation()<CR>
+" Use <space>f to show documentation in preview window.
+nnoremap <silent> <space>f :call <SID>show_documentation()<CR>
 
 function! s:show_documentation()
   if (index(['vim','help'], &filetype) >= 0)
@@ -425,7 +468,7 @@ function! s:show_documentation()
 endfunction
 
 " Highlight the symbol and its references when holding the cursor.
-autocmd CursorHold * silent call CocActionAsync('highlight')
+" autocmd CursorHold * silent call CocActionAsync('highlight')
 
 " Symbol renaming.
 nmap <leader>rn <Plug>(coc-rename)
@@ -543,6 +586,24 @@ nmap <space>e :CocCommand explorer<CR>
 noremap <silent> <space>tp :CocCommand template.templateTop<CR>
 
 
+noremap <LEADER>v :Vista coc<CR>
+noremap <c-t> :silent! Vista finder coc<CR>
+let g:vista_icon_indent = ["╰─▸ ", "├─▸ "]
+let g:vista_default_executive = 'ctags'
+let g:vista_executive_for = {
+  \ 'cpp': 'vim_lsp',
+  \ 'php': 'vim_lsp',
+  \ }
+let g:vista_ctags_cmd = {
+      \ 'haskell': 'hasktags -x -o - -c',
+      \ }
+let g:vista_fzf_preview = ['right:50%']
+let g:vista#renderer#enable_icon = 1
+let g:vista#renderer#icons = {
+\   "function": "\uf794",
+\   "variable": "\uf71b",
+\  }
+
 " Commenter
 " Add spaces after comment delimiters by default
 let g:NERDSpaceDelims = 1
@@ -567,6 +628,22 @@ let g:NERDTrimTrailingWhitespace = 1
 
 " Enable NERDCommenterToggle to check all selected lines is commented or not 
 let g:NERDToggleCheckAllLines = 1
+
+" Vimspector
+let g:vimspector_enable_mappings = 'HUMAN'
+function! s:read_template_into_buffer(template)
+	" has to be a function to avoid the extra space fzf#run insers otherwise
+	execute '0r ~/.config/nvim/sample_vimspector_json/'.a:template
+endfunction
+command! -bang -nargs=* LoadVimSpectorJsonTemplate call fzf#run({
+			\   'source': 'ls -1 ~/.config/nvim/sample_vimspector_json',
+			\   'down': 20,
+			\   'sink': function('<sid>read_template_into_buffer')
+			\ })
+" noremap <leader>vs :tabe .vimspector.json<CR>:LoadVimSpectorJsonTemplate<CR>
+sign define vimspectorBP text=☛ texthl=Normal
+sign define vimspectorBPDisabled text=☞ texthl=Normal
+sign define vimspectorPC text=🔶 texthl=SpellBad
 
 
 " Necessary Commands to Execute
